@@ -5,6 +5,11 @@ const app = require('./app');
 var eventId; // Variable globale pour stocker l'ID de l'événement créé
 
 describe('API Events', () => {
+    it('should validate API password from secret', () => {
+        expect(process.env.API_PASSWORD).toBeDefined();
+        expect(process.env.API_PASSWORD).toBe('JeSuisUnMotDePasse');
+    });
+
      it("should create an event with all valid fields", async () => {
         var today = new Date();
         const response = await request(app).post('/events')
