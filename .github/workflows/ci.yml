@@ -2,8 +2,7 @@ name: Pipeline CI (Lint, Build & Test)
 
 on:
   pull_request:
-    branches:
-       [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -20,13 +19,21 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Installer les dépendances
         run: npm ci
 
       - name: Linter (ESLint)
         run: npm run lint
+
+      - name: Vérifier API_PASSWORD
+        shell: bash
+        run: |
+          if [ -z "$API_PASSWORD" ]; then
+            echo "::error::Le secret GitHub API_PASSWORD est manquant ou vide."
+            exit 1
+          fi
 
       - name: Masquer API_PASSWORD dans les logs
         run: echo "::add-mask::$API_PASSWORD"
