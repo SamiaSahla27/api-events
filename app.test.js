@@ -4,6 +4,8 @@ const app = require('./app');
 
 var eventId; // Variable globale pour stocker l'ID de l'événement créé
 
+// test ok
+
 describe('API Events', () => {
      it("should create an event with all valid fields", async () => {
         var today = new Date();
