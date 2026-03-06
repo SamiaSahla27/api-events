@@ -3,7 +3,7 @@ const request = require('supertest');
 const app = require('./app');
 
 var eventId; // Variable globale pour stocker l'ID de l'événement créé
-
+// test ok haha
 describe('API Events', () => {
      it("should create an event with all valid fields", async () => {
         var today = new Date();
