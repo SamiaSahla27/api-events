@@ -181,5 +181,18 @@ app.delete('/events/:id', (req, res) => {
     res.status(204).json({ message: `Événement #${id} supprimé` });
 });
 
+app.get('/help', (req, res) => {
+    res.status(200).json({
+        endpoints: {
+            "GET /events": "Récupérer tous les événements",
+            "POST /events": "Créer un nouvel événement (title, date, description?, participants?, categorie?, lieu?)",
+            "PUT /events/:id": "Mettre à jour un événement (title, date, description?, participants?, categorie?, lieu?)",
+            "DELETE /events/:id": "Supprimer un événement"
+        }
+    });
+});
+
+
+
 // Export de l'app (nécessaire pour les tests unitaires sans lancer le serveur)
 module.exports = app;
