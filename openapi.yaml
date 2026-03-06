@@ -1,0 +1,315 @@
+openapi: 3.0.3
+info:
+  title: API Gestion d'Événements
+  description: API REST de gestion d'événements pour cours CI/CD
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Serveur local de développement
+
+paths:
+  /:
+    get:
+      summary: Page d'accueil
+      description: Retourne un message de bienvenue.
+      responses:
+        "200":
+          description: Message de bienvenue
+          content:
+            text/html:
+              schema:
+                type: string
+                example: "Bienvenue sur l'API de gestion d'événements !"
+
+  /events:
+    get:
+      summary: Récupérer tous les événements
+      description: Retourne la liste complète des événements enregistrés.
+      responses:
+        "200":
+          description: Liste des événements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+    post:
+      summary: Créer un nouvel événement
+      description: |
+        Crée un événement. Tous les champs sont obligatoires.
+        - La date ne peut pas être dans le passé.
+        - La catégorie doit être parmi : Music, Art, Tech, Sports, Education.
+        - Le nombre de participants doit être un entier entre 1 et 50.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventInput"
+      responses:
+        "201":
+          description: Événement créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "400":
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                champsManquants:
+                  summary: Champs obligatoires manquants
+                  value:
+                    error: "Tous les champs sont obligatoires"
+                categorieInvalide:
+                  summary: Catégorie invalide
+                  value:
+                    error: "Catégorie invalide. Les catégories valides sont : Music, Art, Tech, Sports, Education"
+                datePasse:
+                  summary: Date dans le passé
+                  value:
+                    error: "La date ne peut pas être dans le passé"
+                participantsInvalide:
+                  summary: Nombre de participants invalide
+                  value:
+                    error: "La capacité doit être un entier positif"
+                participantsTropEleve:
+                  summary: Trop de participants
+                  value:
+                    error: "La capacité doit etre inférieure a 50"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /events/{id}:
+    put:
+      summary: Mettre à jour un événement
+      description: |
+        Met à jour un événement existant. Le titre et la date sont obligatoires.
+        - La date ne peut pas être dans le passé.
+        - Le nombre de participants doit être un entier positif.
+      parameters:
+        - $ref: "#/components/parameters/EventId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventInput"
+      responses:
+        "200":
+          description: Événement mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "400":
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                champObligatoire:
+                  summary: Titre ou date manquants
+                  value:
+                    error: "Le titre et la date sont obligatoires"
+                datePasse:
+                  summary: Date dans le passé
+                  value:
+                    error: "La date ne peut pas être dans le passé"
+                participantsInvalide:
+                  summary: Nombre de participants invalide
+                  value:
+                    error: "La capacité doit être un entier positif"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+    delete:
+      summary: Supprimer un événement
+      description: Supprime un événement par son identifiant.
+      parameters:
+        - $ref: "#/components/parameters/EventId"
+      responses:
+        "204":
+          description: Événement supprimé avec succès
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /help:
+    get:
+      summary: Aide sur les endpoints
+      description: Retourne la liste des endpoints disponibles et leur description.
+      responses:
+        "200":
+          description: Liste des endpoints
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  endpoints:
+                    type: object
+                    properties:
+                      "GET /events":
+                        type: string
+                        example: "Récupérer tous les événements"
+                      "POST /events":
+                        type: string
+                        example: "Créer un nouvel événement (title, date, description?, participants?, categorie?, lieu?)"
+                      "PUT /events/:id":
+                        type: string
+                        example: "Mettre à jour un événement (title, date, description?, participants?, categorie?, lieu?)"
+                      "DELETE /events/:id":
+                        type: string
+                        example: "Supprimer un événement"
+
+components:
+  schemas:
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant unique de l'événement
+          example: 1
+        title:
+          type: string
+          description: Titre de l'événement
+          example: "Concert de jazz"
+        date:
+          type: string
+          format: date
+          description: Date de l'événement (YYYY-MM-DD)
+          example: "2026-07-15"
+        description:
+          type: string
+          nullable: true
+          description: Description de l'événement
+          example: "Un concert en plein air"
+        participants:
+          type: integer
+          nullable: true
+          description: Nombre de participants (1–50)
+          example: 30
+        categorie:
+          type: string
+          nullable: true
+          description: Catégorie de l'événement
+          enum:
+            - Music
+            - Art
+            - Tech
+            - Sports
+            - Education
+          example: "Music"
+        lieu:
+          type: string
+          nullable: true
+          description: Lieu de l'événement
+          example: "Paris"
+
+    EventInput:
+      type: object
+      required:
+        - title
+        - date
+        - participants
+        - categorie
+        - lieu
+      properties:
+        title:
+          type: string
+          description: Titre de l'événement
+          example: "Concert de jazz"
+        date:
+          type: string
+          format: date
+          description: Date de l'événement (YYYY-MM-DD, ne peut pas être dans le passé)
+          example: "2026-07-15"
+        description:
+          type: string
+          nullable: true
+          description: Description de l'événement
+          example: "Un concert en plein air"
+        participants:
+          type: integer
+          minimum: 1
+          maximum: 50
+          description: Nombre de participants (entier entre 1 et 50)
+          example: 30
+        categorie:
+          type: string
+          description: Catégorie de l'événement
+          enum:
+            - Music
+            - Art
+            - Tech
+            - Sports
+            - Education
+          example: "Music"
+        lieu:
+          type: string
+          description: Lieu de l'événement
+          example: "Paris"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Message d'erreur
+          example: "Tous les champs sont obligatoires"
+
+  parameters:
+    EventId:
+      name: id
+      in: path
+      required: true
+      description: Identifiant unique de l'événement
+      schema:
+        type: integer
+        example: 1
+
+  responses:
+    NotFound:
+      description: Événement introuvable
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: "Événement introuvable"
+
+    UnsupportedMediaType:
+      description: Content-Type invalide (doit être application/json)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: "Content-Type doit être application/json"
+
+    TooManyRequests:
+      description: Trop de requêtes (rate limiting – 100 req / 15 min)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: "Trop de requêtes, veuillez réessayer plus tard"
