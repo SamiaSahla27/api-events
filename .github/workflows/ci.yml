@@ -48,4 +48,6 @@ jobs:
       - name: Ajouter un lien dans le résumé 🔗
         run: |
           echo "### 📄 Rapports CI" >> $GITHUB_STEP_SUMMARY
-          echo "- [Télécharger les rapports](https://github.com/${{ github.repository }}/suites/${{ github.run_id }}/artifacts)" >> $GITHUB_STEP_SUMMARY
+          echo "- Pour récupérer les fichiers, rendez-vous sur la page du run" >> $GITHUB_STEP_SUMMARY
+          echo "  [Aller au run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          echo "  (section **Artifacts** en bas de la page)" >> $GITHUB_STEP_SUMMARY
