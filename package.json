@@ -5,18 +5,17 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "jest --forceExit",
-    "lint": "eslint ."
+    "test": "jest --forceExit"
   },
   "dependencies": {
-    "express": "^4.18.2",
+    "better-sqlite3": "^12.6.2",
     "cors": "^2.8.5",
-    "better-sqlite3": "^12.6.2"
+    "express": "^4.18.2",
+    "express-rate-limit": "^8.3.0",
+    "helmet": "^8.1.0"
   },
   "devDependencies": {
     "jest": "^29.5.0",
-    "supertest": "^6.3.3",
-     "eslint": "^8.57.0"
+    "supertest": "^6.3.3"
   }
-
 }
