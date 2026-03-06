@@ -58,6 +58,9 @@ jobs:
       - name: Linter (ESLint)
         run: npm run lint
 
+      - name: Executer les tests unitaires
+        run: npm test
+
       - name: Vérifier API_PASSWORD
         shell: bash
         run: |
