@@ -5,7 +5,12 @@ const app = require('./app');
 var eventId; // Variable globale pour stocker l'ID de l'événement créé
 // test ok haha
 describe('API Events', () => {
-     it("should create an event with all valid fields", async () => {
+    it('should validate API password from secret', () => {
+        expect(process.env.API_PASSWORD).toBeDefined();
+        expect(process.env.API_PASSWORD).toBe('JeSuisUnMotDePasse');
+    });
+    // Tests pour POST /events
+    it("should create an event with all valid fields", async () => {
         var today = new Date();
         const response = await request(app).post('/events')
             .send({ title: 'Complete Event', date: today.toISOString().split('T')[0], participants: 10, categorie: 'Music', lieu: 'Paris' });
@@ -106,7 +111,7 @@ describe('API Events', () => {
         expect(response.body).toHaveProperty('error');
     });
 
-   
+
     it("should delete an existing event", async () => {
         const deleteResponse = await request(app).delete("/events/" + eventId);
         expect(deleteResponse.statusCode).toBe(204);
