@@ -135,6 +135,18 @@ app.post('/events', (req, res) => {
     });
 });
 
+// GET /events/:id : Récupérer un événement par son ID
+app.get('/events/:id', (req, res) => {
+    const { id } = req.params;
+    const event = db.prepare('SELECT * FROM events WHERE id = ?').get(id);
+
+    if (!event) {
+        return res.status(404).json({ error: "Événement introuvable" });
+    }
+
+    res.status(200).json(event);
+});
+
 // PUT /events/:id : Mettre à jour un événement
 app.put('/events/:id', (req, res) => {
     const { id } = req.params;
