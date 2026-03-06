@@ -1,20 +1,49 @@
 name: Pipeline CI (Lint, Build & Test)
 
 on:
+  push:
+    branches: [integration, staging, main]
   pull_request:
-    branches: [main]
+    branches: [integration, staging, main]
   workflow_dispatch:
+    inputs:
+      target_environment:
+        description: "Environnement cible"
+        required: true
+        default: Integration
+        type: choice
+        options:
+          - Integration
+          - Staging
+          - Prod
 
 jobs:
   lint-and-test:
-    name: Lint & Test
+    name: Lint & Test (${{ matrix.environment }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - environment: Integration
+            branch: integration
+          - environment: Staging
+            branch: staging
+          - environment: Prod
+            branch: main
+    if: |
+      (github.event_name == 'workflow_dispatch' && matrix.environment == inputs.target_environment) ||
+      (github.event_name == 'push' && github.ref == format('refs/heads/{0}', matrix.branch)) ||
+      (github.event_name == 'pull_request' && github.base_ref == matrix.branch)
+    environment: ${{ matrix.environment }}
     env:
       API_PASSWORD: ${{ secrets.API_PASSWORD }}
 
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
+
+      - name: Afficher l'environnement cible
+        run: echo "Environnement=${{ matrix.environment }}"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
