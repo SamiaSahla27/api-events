@@ -9,7 +9,7 @@ db.exec(`
         title       TEXT    NOT NULL,
         date        TEXT    NOT NULL,
         description TEXT,
-        capacite    INTEGER DEFAULT NULL,
+        participants    INTEGER DEFAULT NULL,
         categorie   TEXT    DEFAULT NULL,
         lieu        TEXT    DEFAULT NULL
     )
@@ -17,7 +17,7 @@ db.exec(`
 
 // Migrations : ajouter les colonnes si elles n'existent pas encore
 const columns = db.prepare("PRAGMA table_info(events)").all().map(c => c.name);
-if (!columns.includes('capacite'))  db.exec('ALTER TABLE events ADD COLUMN capacite  INTEGER DEFAULT NULL');
+if (!columns.includes('participants'))  db.exec('ALTER TABLE events ADD COLUMN participants  INTEGER DEFAULT NULL');
 if (!columns.includes('categorie')) db.exec('ALTER TABLE events ADD COLUMN categorie TEXT    DEFAULT NULL');
 if (!columns.includes('lieu'))      db.exec('ALTER TABLE events ADD COLUMN lieu      TEXT    DEFAULT NULL');
 

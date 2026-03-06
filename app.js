@@ -80,8 +80,15 @@ app.post('/events', (req, res) => {
     // --- LOGIQUE MÉTIER (À tester via CI/CD !) ---
 
     // 1. Validation basique
-    if (!newEvent.title || !newEvent.date) {
-        return res.status(400).json({ error: "Le titre et la date sont obligatoires" });
+    if (!newEvent.title || !newEvent.date || !newEvent.participants || !newEvent.categorie || !newEvent.lieu) {
+        return res.status(400).json({ error: "Tous les champs sont obligatoires" });
+    }
+
+
+    // validation catégorie 
+    const validCategories = ['Music', 'Art', 'Tech', 'Sports', 'Education'];
+    if (!validCategories.includes(newEvent.categorie)) {
+        return res.status(400).json({ error: "Catégorie invalide. Les catégories valides sont : " + validCategories.join(', ') });
     }
 
     // 2. Validation logique : pas d'événement dans le passé
@@ -101,6 +108,8 @@ app.post('/events', (req, res) => {
         const cap = Number(newEvent.participants);
         if (!Number.isInteger(cap) || cap < 1) {
             return res.status(400).json({ error: "La capacité doit être un entier positif" });
+        }if (!Number.isInteger(cap) || cap > 50) {
+            return res.status(400).json({ error: "La capacité doit etre inférieure a 50" });
         }
     }
 
@@ -169,7 +178,7 @@ app.delete('/events/:id', (req, res) => {
         return res.status(404).json({ error: "Événement introuvable" });
     }
 
-    res.status(200).json({ message: `Événement #${id} supprimé` });
+    res.status(204).json({ message: `Événement #${id} supprimé` });
 });
 
 // Export de l'app (nécessaire pour les tests unitaires sans lancer le serveur)

@@ -5,18 +5,16 @@ const app = require('./app');
 var eventId; // Variable globale pour stocker l'ID de l'événement créé
 
 describe('API Events', () => {
-    it('should create a new event', async () => {
+     it("should create an event with all valid fields", async () => {
         var today = new Date();
-        const response = await request(app)
-            .post('/events')
-            .send({ title: 'Test Event', date: today.toISOString().split('T')[0] });
+        const response = await request(app).post('/events')
+            .send({ title: 'Complete Event', date: today.toISOString().split('T')[0], participants: 10, categorie: 'Music', lieu: 'Paris' });
         expect(response.statusCode).toBe(201);
         expect(response.body).toHaveProperty('id');
-        expect(response.body.title).toBe('Test Event');
+        expect(response.body.title).toBe('Complete Event');
         expect(response.body.date).toBe(today.toISOString().split('T')[0]);
         eventId = response.body.id; // Stocker l'ID de l'événement créé
     });
-
     it('should not create an event with missing title', async () => {
         var today = new Date();
         const response = await request(app)
@@ -62,15 +60,6 @@ describe('API Events', () => {
         expect(updateResponse.body).toHaveProperty('error');
     });
 
-    it("should delete an existing event", async () => {
-        const deleteResponse = await request(app).delete("/events/" + eventId);
-        expect(deleteResponse.statusCode).toBe(204);
-    });
-
-    it("should not delete a non-existing event", async () => {
-        const deleteResponse = await request(app).delete("/events/" + eventId);
-        expect(deleteResponse.statusCode).toBe(404);
-    });
     it("should not create when more than 50 participants", async () => {
         var today = new Date();
         const response = await request(app)
@@ -117,13 +106,14 @@ describe('API Events', () => {
         expect(response.body).toHaveProperty('error');
     });
 
-    it("should create an event with all valid fields", async () => {
-        var today = new Date();
-        const response = await request(app).post('/events')
-        .send({ title: 'Complete Event', date: today.toISOString().split('T')[0], participants: 10, categorie: 'Music', lieu: 'Paris' });
-        expect(response.statusCode).toBe(201);
-        expect(response.body).toHaveProperty('id');
-        expect(response.body.title).toBe('Complete Event');
-        expect(response.body.date).toBe(today.toISOString().split('T')[0]);
+   
+    it("should delete an existing event", async () => {
+        const deleteResponse = await request(app).delete("/events/" + eventId);
+        expect(deleteResponse.statusCode).toBe(204);
     });
+    it("should not delete a non-existing event", async () => {
+        const deleteResponse = await request(app).delete("/events/" + eventId);
+        expect(deleteResponse.statusCode).toBe(404);
+    });
+
 });
