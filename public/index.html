@@ -269,8 +269,8 @@
         <label for="description">Description</label>
         <textarea id="description" placeholder="Détails de l'événement..."></textarea>
 
-        <label for="capacite">Capacité maximale</label>
-        <input type="number" id="capacite" placeholder="Ex: 50" min="1" />
+        <label for="participants">Capacité maximale</label>
+        <input type="number" id="participants" placeholder="Ex: 50" min="1" />
 
         <label for="categorie">Catégorie</label>
         <input type="text" id="categorie" placeholder="Ex: Conférence, Atelier, Meetup..." />
@@ -337,8 +337,8 @@
         <label for="editDescription">Description</label>
         <textarea id="editDescription"></textarea>
 
-        <label for="editCapacite">Capacité maximale</label>
-        <input type="number" id="editCapacite" placeholder="Ex: 50" min="1" />
+        <label for="editparticipants">Capacité maximale</label>
+        <input type="number" id="editparticipants" placeholder="Ex: 50" min="1" />
 
         <label for="editCategorie">Catégorie</label>
         <input type="text" id="editCategorie" placeholder="Ex: Conférence, Atelier..." />
@@ -386,8 +386,8 @@
                     </div>
                     ${e.categorie ? `<span class="badge" style="background:#8e44ad;margin-left:0.4rem">🏷️ ${e.categorie}</span>` : ''}
                     <span class="badge">📅 ${formatDate(e.date)}</span>
-                    ${e.capacite  ? `<span class="badge" style="background:#27ae60;margin-left:0.4rem">👥 ${e.capacite} places</span>` : ''}
-                    <button class="edit-btn"   onclick="openModal(${e.id}, '${esc(e.title)}', '${e.date}', '${esc(e.description||'')}', ${e.capacite||'null'}, '${esc(e.categorie||'')}', '${esc(e.lieu||'')}')">✏️ Modifier</button>
+                    ${e.participants  ? `<span class="badge" style="background:#27ae60;margin-left:0.4rem">👥 ${e.participants} places</span>` : ''}
+                    <button class="edit-btn"   onclick="openModal(${e.id}, '${esc(e.title)}', '${e.date}', '${esc(e.description||'')}', ${e.participants||'null'}, '${esc(e.categorie||'')}', '${esc(e.lieu||'')}')">✏️ Modifier</button>
                     <button class="delete-btn" onclick="deleteEvent(${e.id})">🗑️ Supprimer</button>
                 </div>
             `).join('');
@@ -403,7 +403,7 @@
         const title       = document.getElementById('title').value.trim();
         const date        = document.getElementById('date').value;
         const description = document.getElementById('description').value.trim();
-        const capacite    = document.getElementById('capacite').value;
+        const participants    = document.getElementById('participants').value;
         const categorie   = document.getElementById('categorie').value.trim();
         const lieu        = document.getElementById('lieu').value.trim();
         const toast       = document.getElementById('toast');
@@ -415,7 +415,7 @@
             const res = await fetch(`${API}/events`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, date, description, capacite: capacite ? Number(capacite) : null, categorie: categorie || null, lieu: lieu || null })
+                body: JSON.stringify({ title, date, description, participants: participants ? Number(participants) : null, categorie: categorie || null, lieu: lieu || null })
             });
 
             const data = await res.json();
@@ -429,7 +429,7 @@
             toast.className = 'toast success';
             toast.textContent = `✅ Événement "${data.title}" créé avec l'id #${data.id}`;
 
-            ['title','date','description','capacite','categorie','lieu'].forEach(id => document.getElementById(id).value = '');
+            ['title','date','description','participants','categorie','lieu'].forEach(id => document.getElementById(id).value = '');
 
             loadEvents();
 
@@ -444,12 +444,12 @@
     function esc(str) { return str.replace(/'/g, "\\'"); }
 
     // ── Modale édition ──────────────────────────────────────────────
-    function openModal(id, title, date, description, capacite, categorie, lieu) {
+    function openModal(id, title, date, description, participants, categorie, lieu) {
         document.getElementById('editId').value          = id;
         document.getElementById('editTitle').value       = title;
         document.getElementById('editDate').value        = date;
         document.getElementById('editDescription').value = description;
-        document.getElementById('editCapacite').value    = capacite !== null ? capacite : '';
+        document.getElementById('editparticipants').value    = participants !== null ? participants : '';
         document.getElementById('editCategorie').value   = categorie || '';
         document.getElementById('editLieu').value        = lieu      || '';
         document.getElementById('editToast').className   = 'toast';
@@ -465,7 +465,7 @@
         const title       = document.getElementById('editTitle').value.trim();
         const date        = document.getElementById('editDate').value;
         const description = document.getElementById('editDescription').value.trim();
-        const capacite    = document.getElementById('editCapacite').value;
+        const participants    = document.getElementById('editparticipants').value;
         const categorie   = document.getElementById('editCategorie').value.trim();
         const lieu        = document.getElementById('editLieu').value.trim();
         const toast       = document.getElementById('editToast');
@@ -475,7 +475,7 @@
         const res = await fetch(`${API}/events/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title, date, description, capacite: capacite ? Number(capacite) : null, categorie: categorie || null, lieu: lieu || null })
+            body: JSON.stringify({ title, date, description, participants: participants ? Number(participants) : null, categorie: categorie || null, lieu: lieu || null })
         });
         const data = await res.json();
 
