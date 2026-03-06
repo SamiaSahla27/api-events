@@ -52,6 +52,7 @@ describe('API Events', () => {
     });
 
     it('should not update an existing event because of anterior date', async () => {
+        var today = new Date();
         var pastDate = new Date();
         pastDate.setDate(today.getDate() - 1);
         const updateResponse = await request(app)
