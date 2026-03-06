@@ -37,6 +37,8 @@ jobs:
     environment: ${{ matrix.environment }}
     env:
       API_PASSWORD: ${{ secrets.API_PASSWORD }}
+      APP_ENV: ${{ matrix.environment }}
+      MY_VARIABLE_INTEGRATION: ${{ vars.MY_VARIABLE_INTEGRATION }}
 
     steps:
       - name: Checkout du code

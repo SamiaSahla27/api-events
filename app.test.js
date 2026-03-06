@@ -9,6 +9,14 @@ describe('API Events', () => {
         expect(process.env.API_PASSWORD).toBeDefined();
         expect(process.env.API_PASSWORD).toBe('JeSuisUnMotDePasse');
     });
+    it('should validate MY_VARIABLE_INTEGRATION in Integration environment', () => {
+        if (process.env.APP_ENV !== 'Integration') {
+            return;
+        }
+
+        expect(process.env.MY_VARIABLE_INTEGRATION).toBeDefined();
+        expect(process.env.MY_VARIABLE_INTEGRATION).toBe('HELLO_INTEGRATION');
+    });
     // Tests pour POST /events
     it("should create an event with all valid fields", async () => {
         var today = new Date();
