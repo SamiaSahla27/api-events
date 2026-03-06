@@ -107,6 +107,18 @@ describe('API Events', () => {
     });
 
    
+    it("should retrieve a single event by id", async () => {
+        const response = await request(app).get("/events/" + eventId);
+        expect(response.statusCode).toBe(200);
+        expect(response.body).toHaveProperty('id', eventId);
+    });
+
+    it("should return 404 for a non-existing event", async () => {
+        const response = await request(app).get("/events/999999");
+        expect(response.statusCode).toBe(404);
+        expect(response.body).toHaveProperty('error');
+    });
+
     it("should delete an existing event", async () => {
         const deleteResponse = await request(app).delete("/events/" + eventId);
         expect(deleteResponse.statusCode).toBe(204);
