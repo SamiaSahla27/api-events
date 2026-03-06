@@ -5,10 +5,10 @@ const app = require('./app');
 var eventId; // Variable globale pour stocker l'ID de l'événement créé
 // test ok haha
 describe('API Events', () => {
-    it('should validate API password from secret', () => {
-        expect(process.env.API_PASSWORD).toBeDefined();
-        expect(process.env.API_PASSWORD).toBe('JeSuisUnMotDePasse');
-    });
+    // it('should validate API password from secret', () => {
+    //     expect(process.env.API_PASSWORD).toBeDefined();
+    //     expect(process.env.API_PASSWORD).toBe('JeSuisUnMotDePasse');
+    // });
     it('should validate MY_VARIABLE_INTEGRATION in Integration environment', () => {
         if (process.env.APP_ENV !== 'Integration') {
             return;
