@@ -26,5 +26,26 @@ jobs:
       - name: Linter (ESLint)
         run: npm run lint
 
+      - name: Audit de sécurité (npm audit)
+        # on ne veut pas que l'audit casse le job, on collecte simplement le rapport
+        run: |
+          npm audit --json > audit.json || true
+
       - name: Tests (Jest)
-        run: npm test
+        # on génère un rapport JSON afin de l'archiver
+        run: |
+          npm test -- --json --outputFile=jest-report.json | tee jest-output.txt || true
+
+      - name: Upload des rapports 📁
+        uses: actions/upload-artifact@v3
+        with:
+          name: rapports-ci
+          path: |
+            jest-report.json
+            jest-output.txt
+            audit.json
+
+      - name: Ajouter un lien dans le résumé 🔗
+        run: |
+          echo "### 📄 Rapports CI" >> $GITHUB_STEP_SUMMARY
+          echo "- [Télécharger les rapports](https://github.com/${{ github.repository }}/suites/${{ github.run_id }}/artifacts)" >> $GITHUB_STEP_SUMMARY
