@@ -58,10 +58,10 @@ const stripTags = (str) => {
  */
 const sanitizeEvent = (body) => ({
     ...body,
-    title:       body.title       ? stripTags(body.title)       : body.title,
+    title: body.title ? stripTags(body.title) : body.title,
     description: body.description ? stripTags(body.description) : body.description,
-    categorie:   body.categorie   ? stripTags(body.categorie)   : body.categorie,
-    lieu:        body.lieu        ? stripTags(body.lieu)        : body.lieu,
+    categorie: body.categorie ? stripTags(body.categorie) : body.categorie,
+    lieu: body.lieu ? stripTags(body.lieu) : body.lieu,
 });
 
 app.get('/', (req, res) => {
@@ -108,7 +108,7 @@ app.post('/events', (req, res) => {
         const cap = Number(newEvent.participants);
         if (!Number.isInteger(cap) || cap < 1) {
             return res.status(400).json({ error: "La capacité doit être un entier positif" });
-        }if (!Number.isInteger(cap) || cap > 50) {
+        } if (!Number.isInteger(cap) || cap > 50) {
             return res.status(400).json({ error: "La capacité doit etre inférieure a 50" });
         }
     }
@@ -119,19 +119,19 @@ app.post('/events', (req, res) => {
         newEvent.title,
         newEvent.date,
         newEvent.description ?? null,
-        newEvent.participants    ?? null,
-        newEvent.categorie   ?? null,
-        newEvent.lieu        ?? null
+        newEvent.participants ?? null,
+        newEvent.categorie ?? null,
+        newEvent.lieu ?? null
     );
 
     res.status(201).json({
-        id:          result.lastInsertRowid,
-        title:       newEvent.title,
-        date:        newEvent.date,
+        id: result.lastInsertRowid,
+        title: newEvent.title,
+        date: newEvent.date,
         description: newEvent.description ?? null,
-        participants:    newEvent.participants    ?? null,
-        categorie:   newEvent.categorie   ?? null,
-        lieu:        newEvent.lieu        ?? null
+        participants: newEvent.participants ?? null,
+        categorie: newEvent.categorie ?? null,
+        lieu: newEvent.lieu ?? null
     });
 });
 
