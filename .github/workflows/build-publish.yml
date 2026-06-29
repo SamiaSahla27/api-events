@@ -2,7 +2,7 @@ name: Build & Publish Docker
 
 on:
   push:
-    branches: [main]
+    branches: [main, "solution/**"]
 
 jobs:
   docker:
