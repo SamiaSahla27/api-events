@@ -30,10 +30,6 @@ jobs:
             branch: staging
           - environment: Prod
             branch: main
-    if: |
-      (github.event_name == 'workflow_dispatch' && matrix.environment == inputs.target_environment) ||
-      (github.event_name == 'push' && github.ref == format('refs/heads/{0}', matrix.branch)) ||
-      (github.event_name == 'pull_request' && github.base_ref == matrix.branch)
     environment: ${{ matrix.environment }}
     env:
       API_PASSWORD: ${{ secrets.API_PASSWORD }}
