@@ -1,7 +1,7 @@
 name: Deploy
 on:
   push:
-    branches: [main]
+    branches: [main, exam/cicde-francois]
 
 jobs:
   deploy-staging:
