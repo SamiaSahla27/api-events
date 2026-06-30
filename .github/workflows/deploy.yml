@@ -13,6 +13,7 @@ jobs:
           curl -X POST "${{vars.RENDER_DEPLOY_HOOK}}"
           echo "Deployed to staging"
 
+
   deploy-production:
     needs: deploy-staging
     runs-on: ubuntu-latest
