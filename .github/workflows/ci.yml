@@ -3,7 +3,7 @@ name: Pipeline CI (Lint, Build & Test)
 on:
   pull_request:
     branches:
-      [ main ]
+      [ main, exam/cicde-francois]
   workflow_dispatch:
 
 jobs:
@@ -58,6 +58,7 @@ jobs:
           name: test-report
           path: coverage/
           retention-days: 7
+
       - name: Verifier les variables d'environnement
         run: |
           chmod +x scripts/check-env.sh
