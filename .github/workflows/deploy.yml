@@ -6,7 +6,7 @@ on:
 jobs:
   deploy-staging:
     runs-on: ubuntu-latest
-    environment: staging
+    environment: Staging
     steps:
       - name: Deploy to staging (Render)
         run: |
