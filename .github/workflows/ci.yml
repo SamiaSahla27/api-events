@@ -58,3 +58,7 @@ jobs:
           name: test-report
           path: coverage/
           retention-days: 7
+      - name: Verifier les variables d'environnement
+        run: |
+          chmod +x scripts/check-env.sh
+          ./scripts/check-env.sh
