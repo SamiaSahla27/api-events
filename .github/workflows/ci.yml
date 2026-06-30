@@ -1,9 +1,11 @@
 name: Pipeline CI (Lint, Build & Test)
 
 on:
+  push:
+    branches: [ main, exam/cicde-francois ]
   pull_request:
     branches:
-      [ main, exam/cicde-francois]
+      [ main, exam/cicde-francois ]
   workflow_dispatch:
 
 jobs:
