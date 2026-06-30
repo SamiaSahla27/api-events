@@ -30,3 +30,11 @@ jobs:
           tags: |
             ghcr.io/${{ env.REPO_LC }}:latest
             ghcr.io/${{ env.REPO_LC }}:${{ github.sha }}
+
+      - name: Scan image Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          format: table
+          exit-code: 0
+          severity: CRITICAL,HIGH
