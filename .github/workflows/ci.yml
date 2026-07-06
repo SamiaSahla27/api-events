@@ -95,6 +95,11 @@ jobs:
       - name: Masquer API_PASSWORD dans les logs
         run: echo "::add-mask::$API_PASSWORD"
 
+      - name: Verifier les variables d'environnement
+        run: |
+          chmod +x scripts/check-env.sh
+          ./scripts/check-env.sh
+
       - name: Tests (Jest)
         run: npm test -- --coverage
 
