@@ -2,60 +2,43 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const app = express();
 const db = require('./database');
 
-// ── Sécurité : Headers HTTP ──────────────────────────────────────────
+const app = express();
+
 app.use(helmet());
 
-// ── Sécurité : Rate limiting (100 req / 15 min par IP) ───────────────
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
     standardHeaders: true,
     legacyHeaders: false,
-    message: { error: "Trop de requêtes, veuillez réessayer plus tard" }
+    message: { error: 'Trop de requetes, veuillez reessayer plus tard' }
 });
+
 app.use('/events', limiter);
-
 app.use(cors());
-
-// ── Sécurité : Taille max du payload (10 kb) ─────────────────────────
 app.use(express.json({ limit: '10kb' }));
 
-// ── Sécurité : Forcer Content-Type application/json sur les mutations ─
 const enforceJson = (req, res, next) => {
-    if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
-        if (!req.is('application/json')) {
-            return res.status(415).json({ error: "Content-Type doit être application/json" });
-        }
+    if (['POST', 'PUT', 'PATCH'].includes(req.method) && !req.is('application/json')) {
+        return res.status(415).json({ error: 'Content-Type doit etre application/json' });
     }
-    next();
+
+    return next();
 };
+
 app.use('/events', enforceJson);
+app.use(express.static('public'));
 
-app.use(express.static('public')); // Sert le front depuis /public
-
-// ── Helpers de sanitisation ───────────────────────────────────────────
-/**
- * Supprime les balises HTML pour prévenir les injections XSS stockées.
- * - Les balises script/style sont supprimées avec leur contenu.
- * - Les autres balises sont supprimées en conservant leur texte intérieur.
- * @param {string} str
- * @returns {string}
- */
 const stripTags = (str) => {
     if (typeof str !== 'string') return str;
-    // Supprimer script et style avec leur contenu
+
     let safe = str.replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, '');
-    // Supprimer toutes les autres balises HTML (texte conservé)
     safe = safe.replace(/<[^>]*>/g, '');
     return safe.trim();
 };
 
-/**
- * Sanitise les champs texte d'un événement.
- */
 const sanitizeEvent = (body) => ({
     ...body,
     title: body.title ? stripTags(body.title) : body.title,
@@ -65,134 +48,159 @@ const sanitizeEvent = (body) => ({
 });
 
 app.get('/', (req, res) => {
-    res.send('Bienvenue sur l\'API de gestion d\'événements !');
+    res.send("Bienvenue sur l'API de gestion d'evenements !");
 });
 
-app.get('/events', (req, res) => {
-    const events = db.prepare('SELECT * FROM events').all();
-    res.json(events);
-});
-
-// POST /events : Créer un nouvel événement
-app.post('/events', (req, res) => {
-    const newEvent = sanitizeEvent(req.body);
-
-    // --- LOGIQUE MÉTIER (À tester via CI/CD !) ---
-
-    // 1. Validation basique
-    if (!newEvent.title || !newEvent.date || !newEvent.participants || !newEvent.categorie || !newEvent.lieu) {
-        return res.status(400).json({ error: "Tous les champs sont obligatoires" });
-    }
-
-
-    // validation catégorie 
-    const validCategories = ['Music', 'Art', 'Tech', 'Sports', 'Education'];
-    if (!validCategories.includes(newEvent.categorie)) {
-        return res.status(400).json({ error: "Catégorie invalide. Les catégories valides sont : " + validCategories.join(', ') });
-    }
-
-    // 2. Validation logique : pas d'événement dans le passé
-    const eventDate = new Date(newEvent.date);
-    const today = new Date();
-    // On retire l'heure pour comparer uniquement les jours
-    today.setHours(0, 0, 0, 0);
-
-    if (eventDate < today) {
-        return res.status(400).json({
-            error: "La date ne peut pas être dans le passé"
+app.get('/health', async (req, res) => {
+    try {
+        await db.query('SELECT 1');
+        return res.status(200).json({
+            status: 'ok',
+            timestamp: new Date().toISOString(),
+            env: process.env.NODE_ENV || 'development',
+            version: process.env.npm_package_version || '1.0.0',
+            database: 'connected'
+        });
+    } catch (error) {
+        console.error('Health check error:', error);
+        return res.status(500).json({
+            status: 'error',
+            timestamp: new Date().toISOString(),
+            env: process.env.NODE_ENV || 'development',
+            version: process.env.npm_package_version || '1.0.0',
+            database: 'disconnected'
         });
     }
-
-    // 2b. Validation participants
-    if (newEvent.participants !== undefined && newEvent.participants !== null) {
-        const cap = Number(newEvent.participants);
-        if (!Number.isInteger(cap) || cap < 1) {
-            return res.status(400).json({ error: "La capacité doit être un entier positif" });
-        } if (!Number.isInteger(cap) || cap > 50) {
-            return res.status(400).json({ error: "La capacité doit etre inférieure a 50" });
-        }
-    }
-
-    // 3. Insertion en base de données
-    const stmt = db.prepare('INSERT INTO events (title, date, description, participants, categorie, lieu) VALUES (?, ?, ?, ?, ?, ?)');
-    const result = stmt.run(
-        newEvent.title,
-        newEvent.date,
-        newEvent.description ?? null,
-        newEvent.participants ?? null,
-        newEvent.categorie ?? null,
-        newEvent.lieu ?? null
-    );
-
-    res.status(201).json({
-        id: result.lastInsertRowid,
-        title: newEvent.title,
-        date: newEvent.date,
-        description: newEvent.description ?? null,
-        participants: newEvent.participants ?? null,
-        categorie: newEvent.categorie ?? null,
-        lieu: newEvent.lieu ?? null
-    });
 });
 
-// PUT /events/:id : Mettre à jour un événement
-app.put('/events/:id', (req, res) => {
-    const { id } = req.params;
-    const { title, date, description, participants, categorie, lieu } = sanitizeEvent(req.body);
-
-    if (!title || !date) {
-        return res.status(400).json({ error: "Le titre et la date sont obligatoires" });
+app.get('/events', async (req, res) => {
+    try {
+        const result = await db.query('SELECT * FROM events ORDER BY id ASC');
+        return res.json(result.rows);
+    } catch (error) {
+        console.error('GET /events error:', error);
+        return res.status(500).json({ error: 'Erreur interne du serveur' });
     }
-
-    const eventDate = new Date(date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (eventDate < today) {
-        return res.status(400).json({ error: "La date ne peut pas être dans le passé" });
-    }
-
-    if (participants !== undefined && participants !== null) {
-        const cap = Number(participants);
-        if (!Number.isInteger(cap) || cap < 1) {
-            return res.status(400).json({ error: "La capacité doit être un entier positif" });
-        }
-    }
-
-    const result = db.prepare(
-        'UPDATE events SET title = ?, date = ?, description = ?, participants = ?, categorie = ?, lieu = ? WHERE id = ?'
-    ).run(title, date, description ?? null, participants ?? null, categorie ?? null, lieu ?? null, id);
-
-    if (result.changes === 0) {
-        return res.status(404).json({ error: "Événement introuvable" });
-    }
-
-    res.status(200).json({ id: Number(id), title, date, description: description ?? null, participants: participants ?? null, categorie: categorie ?? null, lieu: lieu ?? null });
 });
 
-// DELETE /events/:id : Supprimer un événement
-app.delete('/events/:id', (req, res) => {
-    const { id } = req.params;
-    const result = db.prepare('DELETE FROM events WHERE id = ?').run(id);
+app.post('/events', async (req, res) => {
+    try {
+        const newEvent = sanitizeEvent(req.body);
 
-    if (result.changes === 0) {
-        return res.status(404).json({ error: "Événement introuvable" });
+        if (!newEvent.title || !newEvent.date || !newEvent.participants || !newEvent.categorie || !newEvent.lieu) {
+            return res.status(400).json({ error: 'Tous les champs sont obligatoires' });
+        }
+
+        const validCategories = ['Music', 'Art', 'Tech', 'Sports', 'Education'];
+        if (!validCategories.includes(newEvent.categorie)) {
+            return res.status(400).json({
+                error: `Categorie invalide. Les categories valides sont : ${validCategories.join(', ')}`
+            });
+        }
+
+        const eventDate = new Date(newEvent.date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (eventDate < today) {
+            return res.status(400).json({ error: 'La date ne peut pas etre dans le passe' });
+        }
+
+        if (newEvent.participants !== undefined && newEvent.participants !== null) {
+            const cap = Number(newEvent.participants);
+            if (!Number.isInteger(cap) || cap < 1) {
+                return res.status(400).json({ error: 'La capacite doit etre un entier positif' });
+            }
+            if (cap > 50) {
+                return res.status(400).json({ error: 'La capacite doit etre inferieure ou egale a 50' });
+            }
+        }
+
+        const result = await db.query(
+            'INSERT INTO events (title, date, description, participants, categorie, lieu) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [
+                newEvent.title,
+                newEvent.date,
+                newEvent.description ?? null,
+                newEvent.participants ?? null,
+                newEvent.categorie ?? null,
+                newEvent.lieu ?? null
+            ]
+        );
+
+        return res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error('POST /events error:', error);
+        return res.status(500).json({ error: 'Erreur interne du serveur' });
     }
+});
 
-    res.status(204).json({ message: `Événement #${id} supprimé` });
+app.put('/events/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, date, description, participants, categorie, lieu } = sanitizeEvent(req.body);
+
+        if (!title || !date) {
+            return res.status(400).json({ error: 'Le titre et la date sont obligatoires' });
+        }
+
+        const eventDate = new Date(date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (eventDate < today) {
+            return res.status(400).json({ error: 'La date ne peut pas etre dans le passe' });
+        }
+
+        if (participants !== undefined && participants !== null) {
+            const cap = Number(participants);
+            if (!Number.isInteger(cap) || cap < 1) {
+                return res.status(400).json({ error: 'La capacite doit etre un entier positif' });
+            }
+        }
+
+        const result = await db.query(
+            'UPDATE events SET title = $1, date = $2, description = $3, participants = $4, categorie = $5, lieu = $6 WHERE id = $7 RETURNING *',
+            [title, date, description ?? null, participants ?? null, categorie ?? null, lieu ?? null, id]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Evenement introuvable' });
+        }
+
+        return res.status(200).json(result.rows[0]);
+    } catch (error) {
+        console.error('PUT /events/:id error:', error);
+        return res.status(500).json({ error: 'Erreur interne du serveur' });
+    }
+});
+
+app.delete('/events/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await db.query('DELETE FROM events WHERE id = $1 RETURNING *', [id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Evenement introuvable' });
+        }
+
+        return res.status(204).send();
+    } catch (error) {
+        console.error('DELETE /events/:id error:', error);
+        return res.status(500).json({ error: 'Erreur interne du serveur' });
+    }
 });
 
 app.get('/help', (req, res) => {
     res.status(200).json({
         endpoints: {
-            "GET /events": "Récupérer tous les événements",
-            "POST /events": "Créer un nouvel événement (title, date, description?, participants?, categorie?, lieu?)",
-            "PUT /events/:id": "Mettre à jour un événement (title, date, description?, participants?, categorie?, lieu?)",
-            "DELETE /events/:id": "Supprimer un événement"
+            'GET /events': 'Recuperer tous les evenements',
+            'POST /events': 'Creer un nouvel evenement (title, date, description?, participants?, categorie?, lieu?)',
+            'PUT /events/:id': 'Mettre a jour un evenement (title, date, description?, participants?, categorie?, lieu?)',
+            'DELETE /events/:id': 'Supprimer un evenement',
+            'GET /health': 'Verifier la connexion a la base PostgreSQL'
         }
     });
 });
 
-
-
-// Export de l'app (nécessaire pour les tests unitaires sans lancer le serveur)
 module.exports = app;

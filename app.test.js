@@ -5,6 +5,16 @@ const app = require('./app');
 var eventId; // Variable globale pour stocker l'ID de l'événement créé
 // test ok haha
 describe('API Events', () => {
+    it('should return health status with metadata', async () => {
+        const response = await request(app).get('/health');
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body.status).toBe('ok');
+        expect(response.body.timestamp).toBeDefined();
+        expect(response.body.env).toBeDefined();
+        expect(response.body.version).toBeDefined();
+    });
+
     it('should validate API password from secret', () => {
         expect(process.env.API_PASSWORD).toBeDefined();
         expect(process.env.API_PASSWORD).toBe('JeSuisUnMotDePasse');
